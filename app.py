@@ -3,9 +3,14 @@ import cv2 as cv
 import numpy as np
 from keras_facenet import FaceNet
 import pickle
+import argparse
 
+parser = argparse.ArgumentParser(prog='facemask')
+parser.add_argument('--video-source', default=0)
 
-model_facemask = YOLO("./facemaskv0.pt")
+args = parser.parse_args()
+
+model_facemask = YOLO('facemaskv0.pt')
 
 
 def get_embedding(face_pixels, model_facereg=FaceNet()):
@@ -21,7 +26,12 @@ with open('faces_svm.pkl', 'rb') as f:
 with open('output_encoder.pkl', 'rb') as f:
     output_encoder = pickle.load(f)
 
-cap = cv.VideoCapture(0)
+
+video_source = args.video_source
+if isinstance(video_source, str) and video_source.isdigit():
+    video_source = int(video_source)
+
+cap = cv.VideoCapture(video_source)
 
 while True:
 
