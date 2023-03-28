@@ -12,8 +12,11 @@ ap.add_argument("-mH", "--montageH", type=int, default=1,
                 help="montage frame height")
 args = ap.parse_args()
 
+hostname = socket.gethostname()
+local_ip = socket.gethostbyname(hostname)
+print(local_ip)
 # initialize the ImageHub object
-imageHub = imagezmq.ImageHub()
+imageHub = imagezmq.ImageHub(open_port=f'tcp://{local_ip}:5555')
 
 frameDict = {}
 
@@ -29,10 +32,6 @@ ACTIVE_CHECK_SECONDS = ESTIMATED_NUM_PIS * ACTIVE_CHECK_PERIOD
 
 mW = args.montageW
 mH = args.montageH
-
-hostname = socket.gethostname()
-local_ip = socket.gethostbyname(hostname)
-print(local_ip)
 
 # start looping over all the frames
 while True:
