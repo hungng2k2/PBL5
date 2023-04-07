@@ -13,13 +13,20 @@ ap.add_argument("-mH", "--montageH", type=int, default=1,
 args = ap.parse_args()
 
 hostname = socket.gethostname()
+print(hostname)
 local_ip = socket.gethostbyname(hostname)
 print(local_ip)
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(('8.8.8.8', 1))  # connect() for UDP doesn't send packets
+local_ip_address = s.getsockname()[0]
+print(local_ip_address)
+
+
 # initialize the ImageHub object
-imageHub = imagezmq.ImageHub(open_port=f'tcp://{local_ip}:5555')
+imageHub = imagezmq.ImageHub()
 
 frameDict = {}
-
 # initialize the dictionary which will contain  information regarding
 # when a device was last active, then store the last time the check
 # was made was now

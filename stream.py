@@ -10,7 +10,7 @@ import pickle
 # construct the argument parser and parse the arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--server-ip", required=True,
-                    help="ip address of the server to which the client will connect")
+                    help="ip address or host name of the server to which the client will connect")
 parser.add_argument("-vs", "--video-source", default=0)
 
 args = parser.parse_args()
