@@ -40,7 +40,7 @@ if (mode == 1 or mode == 2) and server == None:
 # load YOLO facemask model
 model_facemask = YOLO(facemask_path)
 # load face regconition model
-model_facereg = FaceRegconition(facereg_path)
+model_facereg = FaceRegconition(facereg_path, threshold=0.5)
 
 if mode == 1 or mode == 2:
     # initialize the ImageSender object with the socket address of the
