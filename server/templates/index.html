@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        .img-container {
+            float: left;
+            width: 30%;
+            padding: 5px;
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <div class="img-container">
+            <p align="center">Camera stream 1</p>
+            <img src="{{ url_for('video_feed', device="jetsonnano") }}" class="center"
+                style="border:1px solid black;width:100%" alt="Camera stream 1">
+        </div>
+    </div>
+</body>
+
+</html>
