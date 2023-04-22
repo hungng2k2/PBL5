@@ -1,9 +1,11 @@
+import time
 import imagezmq
 import socket
 from ultralytics import YOLO
 import cv2 as cv
 import argparse
-from facereg import FaceRegconition
+from facereg import FaceRecognition
+import json
 
 parser = argparse.ArgumentParser(prog='facemask')
 parser.add_argument('-v', '--video-source', default=0,
@@ -40,7 +42,7 @@ if (mode == 1 or mode == 2) and server == None:
 # load YOLO facemask model
 model_facemask = YOLO(facemask_path)
 # load face regconition model
-model_facereg = FaceRegconition(facereg_path, threshold=0.5)
+model_facereg = FaceRecognition(facereg_path, threshold=0.5)
 
 if mode == 1 or mode == 2:
     # initialize the ImageSender object with the socket address of the
@@ -62,6 +64,8 @@ while True:
         break
     frame = cv.flip(frame, 1)
 
+    labels = []
+
     results = model_facemask.predict(source=frame)
     for r in results:
 
@@ -81,17 +85,26 @@ while True:
                 face = pixels[ymin:ymax, xmin:xmax]
                 predict_name, prob_max = model_facereg.predict(face)
                 if predict_name != None:
+                    label = predict_name[0]
                     cv.putText(
-                        frame, f'{predict_name[0]} {prob_max}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
+                        frame, f'{label} {prob_max}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
             else:
                 confidence = float(box.conf[0])
-                cv.putText(frame, f"{model_facemask.names[int(c)]} {round(confidence,2)}", (xmin, ymin),
+                label = model_facemask.names[int(c)]
+                cv.putText(frame, f"{label} {round(confidence,2)}", (xmin, ymin),
                            cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), thickness=2)
+
+            labels.append(label)
 
     if mode == 0 or mode == 2:
         cv.imshow('facemask', frame)
     if mode == 1 or mode == 2:
-        reply = sender.send_image(hostname, frame)
+        info = {
+            "hostname": hostname,
+            "time": time.ctime(),
+            "labels": labels
+        }
+        reply = sender.send_image(json.dumps(info), frame)
         if reply != b'OK':
             print("Server not response")
             if mode == 2:

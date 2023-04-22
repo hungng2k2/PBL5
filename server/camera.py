@@ -1,6 +1,8 @@
+import json
 import time
 import threading
 import imagezmq
+from firebase import save
 
 try:
     from greenlet import getcurrent as get_ident
@@ -55,6 +57,7 @@ class CameraEvent:
 
 
 class Camera:
+    UPDATE_DATA_DELAY = 1
     threads = {}  # background thread that reads frames from camera
     frame = {}  # current frame is stored here by background thread
     event = {}
@@ -88,27 +91,25 @@ class Camera:
 
     @staticmethod
     def server_frames(image_hub):
-        num_frames = 0
-        total_time = 0
+        time_now = time.time()
+        time_start = time_now
         while True:  # main loop
             if Camera.stop == True:
                 break
-            time_start = time.time()
+            time_now = time.time()
 
-            cam_id, frame = image_hub.recv_image()
+            info, frame = image_hub.recv_image()
             # this is needed for the stream to work with REQ/REP pattern
             image_hub.send_reply(b'OK')
+            info = json.loads(info)
+            camera_id = info['hostname']
 
-            num_frames += 1
+            if (time_now - time_start) >= Camera.UPDATE_DATA_DELAY:
+                time_start = time_now
+                if len(info['labels']) > 0:
+                    save(info)
 
-            time_now = time.time()
-            total_time += time_now - time_start
-            fps = num_frames / total_time
-
-            # uncomment below to see FPS of camera stream
-            # cv2.putText(frame, "FPS: %.2f" % fps, (int(20), int(40 * 5e-3 * frame.shape[0])), 0, 2e-3 * frame.shape[0],(255, 255, 255), 2)
-
-            yield cam_id, frame
+            yield camera_id, frame
 
     @classmethod
     def server_thread(cls, unique_name, port):
@@ -118,8 +119,8 @@ class Camera:
 
         frames_iterator = cls.server_frames(image_hub)
         try:
-            for cam_id, frame in frames_iterator:
-                Camera.frame[unique_name] = cam_id, frame
+            for camera_id, frame in frames_iterator:
+                Camera.frame[unique_name] = camera_id, frame
                 Camera.event[unique_name].set()  # send signal to clients
         except Exception as e:
             frames_iterator.close()

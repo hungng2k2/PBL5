@@ -1,3 +1,4 @@
+import json
 from flask import Flask, render_template, Response
 import cv2
 import time
@@ -42,7 +43,7 @@ def gen(device):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 
-@app.route('/video_feed/<device>')
+@app.route('/video_feed/<device>', methods=['GET'])
 def video_feed(device):
     """Video streaming route. Put this in the src attribute of an img tag."""
     return Response(gen(device),

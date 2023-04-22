@@ -5,7 +5,7 @@ import numpy as np
 import cv2 as cv
 
 
-class FaceRegconition:
+class FaceRecognition:
     def __init__(self, model_path, threshold=0.6) -> None:
         self.load(model_path)
         self.threshold = threshold
