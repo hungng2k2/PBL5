@@ -6,7 +6,6 @@ import cv2 as cv
 import argparse
 from facereg import FaceRecognition
 import json
-from time import time   
 
 parser = argparse.ArgumentParser(prog='facemask')
 parser.add_argument('-v', '--video-source', default=0,
@@ -65,7 +64,7 @@ while True:
         break
     frame = cv.flip(frame, 1)
 
-    time_start = int(time() * 1000)
+    time_start = int(time.time() * 1000)
 
     labels = []
     results = model_facemask.predict(source=frame)
@@ -112,7 +111,7 @@ while True:
             if mode == 2:
                 mode = 0
     
-    time_end = int(time() * 1000)
+    time_end = int(time.time() * 1000)
 
     if cv.waitKey(time_end - time_start) & 0xFF == ord('q'):
         break
