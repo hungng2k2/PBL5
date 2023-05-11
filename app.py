@@ -4,7 +4,7 @@ import socket
 from ultralytics import YOLO
 import cv2 as cv
 import argparse
-from facereg import FaceRecognition
+from facereg import FaceNet_Recognizer_EuclideanDistance
 import json
 
 parser = argparse.ArgumentParser(prog='facemask')
@@ -20,6 +20,8 @@ parser.add_argument("--facereg-path", default="facereg-v0",
                     help="face regconition model directory")
 parser.add_argument("--facemask-path", default="facemaskv0.pt",
                     help="facemask YOLO model")
+parser.add_argument("--update-interval", default=None,
+                    help="time (minutes) to update data from firebase, not update if none")
 
 args = parser.parse_args()
 
@@ -36,13 +38,22 @@ facemask_path = args.facemask_path
 mode = int(args.mode)
 
 
-if (mode == 1 or mode == 2) and server == None:
+if (mode == 1 or mode == 2) and server is None:
     raise RuntimeError("server is none")
 
 # load YOLO facemask model
 model_facemask = YOLO(facemask_path)
 # load face regconition model
-model_facereg = FaceRecognition(facereg_path, threshold=0.5)
+model_facereg = FaceNet_Recognizer_EuclideanDistance()
+
+if args.update_interval is None:
+    model_facereg.load('./Face_recognition_euclidean_distance')
+else:
+    model_facereg.load_from_firebase()
+    update_interval = 60*float(args.update_interval)
+    last_update_time = int(time.time())
+
+print(model_facereg)
 
 if mode == 1 or mode == 2:
     # initialize the ImageSender object with the socket address of the
@@ -57,7 +68,14 @@ if isinstance(video_source, str) and video_source.isdigit():
 cap = cv.VideoCapture()
 cap.open(video_source)
 
+
 while True:
+    # Update model_facereg
+    if args.update_interval is not None:
+        if (int(time.time()) - last_update_time) > update_interval:
+            model_facereg.load_from_firebase()
+            last_update_time = int(time.time())
+            print("model face_recognition updated")
 
     ret, frame = cap.read()
     if not ret:
@@ -84,11 +102,11 @@ while True:
                 xmin = 0 if xmin < 0 else xmin
                 ymin = 0 if ymin < 0 else ymin
                 face = pixels[ymin:ymax, xmin:xmax]
-                predict_name, prob_max = model_facereg.predict(face)
+                predict_name = model_facereg.predict_from_image(face)
                 if predict_name != None:
                     label = predict_name[0]
                     cv.putText(
-                        frame, f'{label} {prob_max}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
+                        frame, f'{label}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
             else:
                 confidence = float(box.conf[0])
                 label = model_facemask.names[int(c)]
