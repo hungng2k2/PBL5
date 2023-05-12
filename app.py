@@ -47,7 +47,7 @@ model_facemask = YOLO(facemask_path)
 model_facereg = FaceNet_Recognizer_EuclideanDistance()
 
 if args.update_interval is None:
-    model_facereg.load('./Face_recognition_euclidean_distance')
+    model_facereg.load(facereg_path)
 else:
     model_facereg.load_from_firebase()
     update_interval = 60*float(args.update_interval)
@@ -76,6 +76,7 @@ while True:
             model_facereg.load_from_firebase()
             last_update_time = int(time.time())
             print("model face_recognition updated")
+            print(model_facereg)
 
     ret, frame = cap.read()
     if not ret:

@@ -39,8 +39,18 @@ class FaceNet_Recognizer_EuclideanDistance():
         self.threshold = data['threshold']
         self.n_clusters = data['n_clusters']
         self.kmeans = KMeans(n_clusters=data['n_clusters'])
-        self.cluster_centers = data['cluster_centers']
-        self.labels = data['labels']
+        self.cluster_centers = np.array(data['cluster_centers'])
+        self.labels = np.array(data['labels'])
+
+    def save(self, model_path):
+        data = {
+            'threshold': self.threshold,
+            'n_clusters': self.kmeans.cluster_centers_.shape[0],
+            'cluster_centers': self.cluster_centers,
+            'labels': self.labels
+        }
+        with open(os.path.join(model_path, "FaceNet_Recognizer_EuclideanDistance.pkl"), 'wb') as file:
+            pickle.dump(data, file)
 
     def load_from_firebase(self):
         try:
@@ -50,18 +60,18 @@ class FaceNet_Recognizer_EuclideanDistance():
                 u'time', direction=firestore.Query.DESCENDING).limit(1)
             result = query.get()
             model_data = result[0].to_dict()
-            # Check if firebase is updated
-            if self.last_update < model_data['time']:
-                self.last_update = model_data['time']
-                self.n_clusters = model_data['n_clusters']
-                self.kmeans = KMeans(n_clusters=model_data['n_clusters'])
-                self.threshold = model_data['threshold']
-                # Retrieving face data
-                faces = db.collection('face').stream()
-                for face in faces:
-                    for vector in face.to_dict().values():
-                        self.cluster_centers = np.append(self.cluster_centers, [vector], axis=0)
-                        self.labels = np.append(self.labels, [face.id], axis=0)
+            self.last_update = model_data['time']
+            self.n_clusters = model_data['n_clusters']
+            self.kmeans = KMeans(n_clusters=model_data['n_clusters'])
+            self.threshold = model_data['threshold']
+            # Retrieving face data
+            faces = db.collection('face').stream()
+            self.cluster_centers = np.empty((0,512))
+            self.labels = np.empty((0)) 
+            for face in faces:
+                for vector in face.to_dict().values():
+                    self.cluster_centers = np.append(self.cluster_centers, [vector], axis=0)
+                    self.labels = np.append(self.labels, [face.id], axis=0)
         except Exception as e:
             print(e)
 
@@ -83,7 +93,7 @@ class FaceNet_Recognizer_EuclideanDistance():
         y_predict = []
         for x in X_test_emb:
             distances = euclidean_distances(x.reshape(1, -1), self.cluster_centers)
-            if np.min(distances) > self.threshold + 0.4:
+            if np.min(distances) > self.threshold:
                 y_predict.append(self.UNKNOWN_LABEL)
             else:
                 min_index = np.argmin(distances)
