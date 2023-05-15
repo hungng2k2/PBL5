@@ -57,7 +57,7 @@ class CameraEvent:
 
 
 class Camera:
-    UPDATE_DATA_DELAY = 1
+    UPDATE_DATA_DELAY_SECONDS = 1
     threads = {}  # background thread that reads frames from camera
     frame = {}  # current frame is stored here by background thread
     event = {}
@@ -104,10 +104,9 @@ class Camera:
             info = json.loads(info)
             camera_id = info['hostname']
 
-            if (time_now - time_start) >= Camera.UPDATE_DATA_DELAY:
+            if (time_now - time_start) >= Camera.UPDATE_DATA_DELAY_SECONDS:
                 time_start = time_now
-                if len(info['labels']) > 0:
-                    save(info)
+                save(info)
 
             yield camera_id, frame
 

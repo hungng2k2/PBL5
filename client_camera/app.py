@@ -121,6 +121,7 @@ while True:
     if mode == 1 or mode == 2:
         info = {
             "hostname": hostname,
+            "timeseconds": time.time(),
             "time": time.ctime(),
             "labels": labels
         }
