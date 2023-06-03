@@ -110,7 +110,7 @@ while True:
                         frame, f'{label}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
             else:
                 confidence = float(box.conf[0])
-                label = model_facemask.names[int(c)]
+                label = model_facemask.names[int(0)]
                 cv.putText(frame, f"{label} {round(confidence,2)}", (xmin, ymin),
                            cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), thickness=2)
 
