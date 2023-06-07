@@ -98,7 +98,7 @@ while True:
 
             cv.rectangle(frame, (xmin, ymin), (xmax, ymax),
                          (0, 255, 0), thickness=2)
-            if int(c) == 2:
+            if int(c) == 1:
                 pixels = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
                 xmin = 0 if xmin < 0 else xmin
                 ymin = 0 if ymin < 0 else ymin
@@ -110,7 +110,7 @@ while True:
                         frame, f'{label}', (xmin, ymin), cv.FONT_HERSHEY_COMPLEX, 0.75, (0, 255, 0), 2)
             else:
                 confidence = float(box.conf[0])
-                label = model_facemask.names[int(0)]
+                label = model_facemask.names[int(c)]
                 cv.putText(frame, f"{label} {round(confidence,2)}", (xmin, ymin),
                            cv.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), thickness=2)
 
