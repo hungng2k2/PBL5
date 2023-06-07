@@ -21,9 +21,13 @@ python app.py --mode 2 --server ip/hostname
 args:
 
 --mode [number]
+
 0: show GUI
+
 1: send data to server
+
 2: 0 and 1
+
 
 --video-source [camera id/video url]
 
